@@ -45,7 +45,7 @@ Anecdotally, it seems the model is able to generate reasonably coherent reflecti
 
 By manually inspecting a few examples, one can observe that the model is slightly overfit to the training set. The reflections generated on the training set have more diversity and contextual relevance. The validation reflections still have some reasonable quality, but they are  less interesting, and tend to be more generic and repetitive. Please see a few samples from the training and validation sets below. Also see [3.0-model-inference.ipynb](3.0-model-inference.ipynb) for more examples.
 
-From the training set. In this case the model generates a relevant fairly coherent response. 
+From the training set. In this case the model generates a relevant and fairly coherent response. 
 > QUESTION:
 Sometimes I can't stop thinking about life after death. I was raised in a religion that teaches that we will live on forever either in hell or in heaven.  When I think of living forever (even if it is in heaven which should be good), I feel overwhelmed. I don't like the thought of living forever and ever and ever. Sometimes I just can't get the thought out of my mind and the thoughts lead to panic and anxiety.  Am I crazy? I don't think these thoughts are normal.<br><br>
 ACTUAL REFLECTION:
@@ -81,7 +81,9 @@ GENERATED REFLECTION:
 
 ## Future work
 
-There are several alternative systems which would likely outperform the one developed in this exercise. These more powerful approaches were not pursued due to time constraints imposed by the challenge. In a real-world scenario I would recommend pursuing and experimenting with the following approach: a seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining.
+There are several alternative systems which would likely outperform the one developed in this exercise. These more powerful approaches were not pursued due to time constraints imposed by the challenge. In a real-world scenario I would recommend pursuing and experimenting with the following approaches
+1. A seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining.
+1. A GAN architecture
 
 
 Possible improvements on the existing system:

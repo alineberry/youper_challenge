@@ -206,6 +206,8 @@ class ReflectionModel(LightningModule):
             ignore_index=self.addl_state['tokenizer'].convert_tokens_to_ids('<pad>'),
             reduction='mean')
 
+        self.metrics = {}
+
     def encode(self, input_ids, attn_mask):
         # forward pass through the encoder
         last_hidden_state, _ = self.enc(input_ids=input_ids, attention_mask=attn_mask)
@@ -301,6 +303,13 @@ class ReflectionModel(LightningModule):
         perp = torch.exp(avg_loss)
         log = {'val_loss': avg_loss, 'val_perp': perp}
         return {**log, 'log': log}
+
+    def _update_metrics(self, new_metrics):
+        # todo: training loss comes in every batch whereas val metrics are in epochs. enforce equal boundaries in plot x-axis
+        # todo: update PL methods to call this method
+        for k,v in new_metrics.items():
+            if k not in self.metrics: self.metrics[k] = []
+            self.metrics[k].append(v)
 
 
 def generate_reflection_from_tensors(input_ids_qu, attn_mask_qu, model, start_token_id, end_token_id,
