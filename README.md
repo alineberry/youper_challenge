@@ -41,20 +41,11 @@ There are several transfer learning components present in the system:
 ## Evaluation
 Perplexity on the validation set is used to evaluate model performance. A BLEU score might also be appropriate, but would require further research to conclude. It would also be informative to run a sentence parser over the outputs to compute the rate at which the model generates syntactically correct sentences.
 
-Anecdotally, it seems the model is able to generate reasonably coherent reflections, which makes me feel confident that it is training correctly and there are no major bugs present. The syntactic structure of the generations tends to read pretty smoothly, although there are still plenty of mistakes. The model needs quite a bit of further tuning before I would recommend putting it into production.
+Anecdotally, it seems the model is able to generate reasonably coherent reflections, suggests that it is training correctly and there are no major bugs present. The syntactic structure of the generations tends to read pretty smoothly, although there are still plenty of mistakes. This model is an acceptable first attempt but needs significant tuning before going into production.
 
-By manually inspecting a few examples, you can see that the model is slightly overfit to the training set. The reflections generated on the training set have more diversity and contextual relevance. The validation reflections still have some reasonable quality, but they are much less interesting, and tend to be more generic and repetitive. Please see a few samples from the training and validation sets below. Also see [3.0-model-inference.ipynb](3.0-model-inference.ipynb) for more examples.
+By manually inspecting a few examples, one can observe that the model is slightly overfit to the training set. The reflections generated on the training set have more diversity and contextual relevance. The validation reflections still have some reasonable quality, but they are  less interesting, and tend to be more generic and repetitive. Please see a few samples from the training and validation sets below. Also see [3.0-model-inference.ipynb](3.0-model-inference.ipynb) for more examples.
 
-From the training set:
-> QUESTION:
-She's busy because her mom makes her clean all the time and go out places with her family. We don't talk much because of it. Also, we have little fights. We want to work it out but we don't know how.<br><br>
-ACTUAL REFLECTION:
-Maybe your girlfriend feels torn in her emotions between loyalty toward her family and toward investing herself in a relationship.There are so many "maybes", that the best way to strengthen your relationship is to ask your girlfriend if she feels any<br><br>
-GENERATED REFLECTION:
- I'm sorry to hear that you are feeling torn and the relationship you are feeling.
-
-Another from the training set:
-
+From the training set. In this case the model generates a relevant fairly coherent response. (This example also illustrates a sentence splitting error)
 > QUESTION:
 Sometimes I can't stop thinking about life after death. I was raised in a religion that teaches that we will live on forever either in hell or in heaven.  When I think of living forever (even if it is in heaven which should be good), I feel overwhelmed. I don't like the thought of living forever and ever and ever. Sometimes I just can't get the thought out of my mind and the thoughts lead to panic and anxiety.  Am I crazy? I don't think these thoughts are normal.<br><br>
 ACTUAL REFLECTION:
@@ -62,7 +53,16 @@ Many people generate intense anxiety with obsessive thinking.<br><br>
 GENERATED REFLECTION:
  It sounds like you are experiencing a lot of anxiety and anxiety.
 
-From the validation set:
+Another from the training set. Here, the model uses the word "torn" (which the therapist uses) but uses it on a different subject than the therapist (therapist is saying the girlfriend is torn, model is saying the user is torn). This could indicate some overfitting.
+> QUESTION:
+She's busy because her mom makes her clean all the time and go out places with her family. We don't talk much because of it. Also, we have little fights. We want to work it out but we don't know how.<br><br>
+ACTUAL REFLECTION:
+Maybe your girlfriend feels torn in her emotions between loyalty toward her family and toward investing herself in a relationship.There are so many "maybes", that the best way to strengthen your relationship is to ask your girlfriend if she feels any<br><br>
+GENERATED REFLECTION:
+ I'm sorry to hear that you are feeling torn and the relationship you are feeling.
+
+
+From the validation set. The model comes up with a pretty coherent response, but it doesn't seem to be very relevant because the user doesn't mention anything about being depressed.
 > QUESTION:
 I’m a teenager. My entire family needs family therapy, and more than likely individual therapy. My parents refuse to take action, and I'm tired of it. Is there any way I can get out of this myself? <br><br>
 ACTUAL REFLECTION:
@@ -70,7 +70,7 @@ This sounds like a really tough situation. <br><br>
 GENERATED REFLECTION:
  I'm sorry to hear that you are feeling pretty depressed.
 
-Another from the validation set:
+Another from the validation set. The model correctly identifies "relationship" as being relevant even though the word "relationship" isn't present in either the question or the actual reflection. However, the sentence is nonsensical.
 
 > QUESTION:
 I’m trying to make marriage work after a split. Before our split, he lied a lot and broke every promise to me. I don't think he cheated. Last month, I asked what women work with him, so he told me. Yesterday, I found out about a girl that he said he forgot about. Should I be upset?<br><br>
