@@ -351,14 +351,14 @@ def generate_reflection_from_string(model, tokenizer, string, start_token_id, en
     return pred_toks
 
 
-def observe_reflection(model, tokenizer, input_ids_qu=None, attn_mask_qu=None,
+def observe_reflection(model, tokenizer, start_token_id, end_token_id, input_ids_qu=None, attn_mask_qu=None,
                        input_ids_re=None, string=None):
     """Wrapper around `generate_reflection_from_tensors` for printing for human observation.
     """
     if string is not None:
-        pred_toks = generate_reflection_from_string(model, tokenizer, string)
+        pred_toks = generate_reflection_from_string(model, tokenizer, string, start_token_id, end_token_id)
     else:
-        pred_toks = generate_reflection_from_tensors(input_ids_qu, attn_mask_qu, model)
+        pred_toks = generate_reflection_from_tensors(input_ids_qu, attn_mask_qu, model, start_token_id, end_token_id)
 
     print('Question:')
     print(tokenizer.decode(input_ids_qu.squeeze(0).tolist()))
