@@ -84,6 +84,7 @@ GENERATED REFLECTION:
 There are several alternative systems which would likely outperform the one developed in this exercise. These more powerful approaches were not pursued due to time constraints imposed by the challenge. In a real-world scenario I would recommend pursuing and experimenting with the following approaches:
 1. A seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining.
 1. A GAN architecture
+1. A VAE architecture
 
 
 Possible improvements on the existing system:
