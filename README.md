@@ -45,7 +45,7 @@ Anecdotally, it seems the model is able to generate reasonably coherent reflecti
 
 By manually inspecting a few examples, one can observe that the model is slightly overfit to the training set. The reflections generated on the training set have more diversity and contextual relevance. The validation reflections still have some reasonable quality, but they are  less interesting, and tend to be more generic and repetitive. Please see a few samples from the training and validation sets below. Also see [3.0-model-inference.ipynb](3.0-model-inference.ipynb) for more examples.
 
-From the training set. In this case the model generates a relevant fairly coherent response. (This example also illustrates a sentence splitting error)
+From the training set. In this case the model generates a relevant fairly coherent response. 
 > QUESTION:
 Sometimes I can't stop thinking about life after death. I was raised in a religion that teaches that we will live on forever either in hell or in heaven.  When I think of living forever (even if it is in heaven which should be good), I feel overwhelmed. I don't like the thought of living forever and ever and ever. Sometimes I just can't get the thought out of my mind and the thoughts lead to panic and anxiety.  Am I crazy? I don't think these thoughts are normal.<br><br>
 ACTUAL REFLECTION:
@@ -53,7 +53,7 @@ Many people generate intense anxiety with obsessive thinking.<br><br>
 GENERATED REFLECTION:
  It sounds like you are experiencing a lot of anxiety and anxiety.
 
-Another from the training set. Here, the model uses the word "torn" (which the therapist uses) but uses it on a different subject than the therapist (therapist is saying the girlfriend is torn, model is saying the user is torn). This could indicate some overfitting.
+Another from the training set. Here, the model uses the word "torn" (which the therapist uses) but uses it on a different subject than the therapist (therapist is saying the girlfriend is torn, model is saying the user is torn). This could indicate some overfitting. (This example also illustrates a sentence splitting error)
 > QUESTION:
 She's busy because her mom makes her clean all the time and go out places with her family. We don't talk much because of it. Also, we have little fights. We want to work it out but we don't know how.<br><br>
 ACTUAL REFLECTION:
