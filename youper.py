@@ -61,14 +61,14 @@ class VarLenLSTM(nn.Module):
     """A generic LSTM module which efficiently handles batches of variable length (ie padded) sequences using
     packing and unpacking
     """
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, hidden_size, num_layers=1):
         """
         Args:
             input_size (int): Dimensionality of LSTM input vector
             hidden_size (int): Dimensionality of LSTM hidden state and cell state
         """
         super().__init__()
-        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, batch_first=True)
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, batch_first=True, num_layers=num_layers)
 
     def forward(self, x, x_lens, h_0, c_0):
         """
@@ -159,7 +159,8 @@ class ReflectionDataset(Dataset):
 
 
 class ReflectionModel(LightningModule):
-    def __init__(self, roberta, enc_hidden_sz=768, dec_hidden_sz=256, dec_input_sz=768, addl_state=None):
+    def __init__(self, roberta, enc_hidden_sz=768, dec_hidden_sz=256, dec_input_sz=768, dec_num_layers=1,
+                 addl_state=None):
         """
 
         Args:
@@ -189,7 +190,8 @@ class ReflectionModel(LightningModule):
         # LSTM decoder
         self.dec = VarLenLSTM(
             input_size=dec_input_sz,
-            hidden_size=dec_hidden_sz)
+            hidden_size=dec_hidden_sz,
+            num_layers=dec_num_layers)
 
         # project encoder hidden states as part of decoder-encoder attention
         self.proj_enc = nn.Linear(enc_hidden_sz, dec_hidden_sz, bias=False)
