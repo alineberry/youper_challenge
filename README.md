@@ -28,7 +28,7 @@ To run the project, perform the following steps:
 1. Create a new python environment and install the `requirements.txt`
 1. Run the notebooks in order
 
-Note, if you don't have GPU on your machine, you may need to instruct PytorchLightning to train on the CPU instead.
+Note, if you don't have a GPU on your machine, you may need to instruct PytorchLightning to train on the CPU instead.
 
 ## Data
 As suggested in the challenge, reflections are mined from the therapist answers in the following ways:
