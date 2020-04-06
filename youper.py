@@ -278,7 +278,7 @@ class ReflectionModel(LightningModule):
         return logits, (h, c)
 
     def forward(self, input_ids_qu, attn_mask_qu, input_ids_re, seq_len_re):
-        """Simple wrapper around `self.encoder` and `self.decode`. The methods are split up in this way to facilitate
+        """Simple wrapper around `self.encode` and `self.decode`. The methods are split up in this way to facilitate
         both training and inference/generation modes.
 
         Args:
