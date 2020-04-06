@@ -104,7 +104,7 @@ Possible improvements on the existing system described in this document:
 1. Gradually unfreeze the top layers of the encoder during training.
 1. Increase training batch size. Due to single GPU memory constraints this would require a gradient accumulation callback
 1. Replace existing attention mechanism with multi-headed attention
-1. Experiment with varying degrees of teach forcing
+1. Experiment with varying degrees of teacher forcing
 1. Experiment with a sampling-based generation scheme with varying degrees of sampling temperature
 1. Experiment with more sophisticated algorithms for generation, such as beam search
 1. Adding additional layers to the LSTM
