@@ -91,13 +91,13 @@ GENERATED REFLECTION:
 
 There are several alternative systems which would likely outperform the one developed in this exercise. **These more powerful approaches were not pursued due to time constraints imposed by the challenge.** In a real-world scenario I would recommend pursuing and experimenting with a seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining. **The randomly initialized LSTM decoder is very likely the weak link in this system. Replacing it with a large pretrained transformer decoder should significantly improve the linguistic expressiveness of the model.**
 
-And researching the feasibility of the following approaches:
+It might be worthwhile to research the feasibility of the following approaches:
 1. A multiclass classification approach
 1. A GAN architecture
 1. A VAE architecture
 
 
-Possible improvements on the existing system:
+Possible improvements on the existing system described in this document:
 1. Collect more data. More web scraping, crowd-sourcing, etc.
 1. Utilize weak supervision and active learning techniques to collect more labeled examples
 1. Explore various ways to improve reflection mining in order to improve label quality
