@@ -1,8 +1,8 @@
 # Youper Challenge - NLP Engineer
 
-## Overview
-
 >Note: Many of the design decisions I made in were driven by the challenge time constraints. I would recommend pursuing a more sophisticated system for the Youper app. Please see the "Future Work" section below for more production model design recommendations. 
+
+## Overview
 
 The system is a generative model, consisting of an encoder-decoder seq2seq stack. The encoder is a pretained roBERTa transformer (12-layer, 768-hidden, 12-heads, 125M parameters), and the decoder is a randomly initialized LSTM (1-layer, 512-hidden, 2.6M parameters, 1-direction). The encoder and decoder are connected in two ways:
 1. The decoder LSTM hidden state at the first timestep is initialized with the result of a max pooling operation across the encoder outputs.
@@ -89,7 +89,7 @@ GENERATED REFLECTION:
 
 ##Future Work
 
-There are several alternative systems which would likely outperform the one developed in this exercise. **These more powerful approaches were not pursued due to time constraints imposed by the challenge.** In a real-world scenario I would recommend pursuing and experimenting with a seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining. **The randomly initialized LSTM decoder is likely a very weak link in this system. Replacing it with a large pretrained transformer decoder should significantly improve the linguistic expressiveness of the model.**
+There are several alternative systems which would likely outperform the one developed in this exercise. **These more powerful approaches were not pursued due to time constraints imposed by the challenge.** In a real-world scenario I would recommend pursuing and experimenting with a seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining. **The randomly initialized LSTM decoder is very likely the weak link in this system. Replacing it with a large pretrained transformer decoder should significantly improve the linguistic expressiveness of the model.**
 
 And researching the feasibility of the following approaches:
 1. A multiclass classification approach
