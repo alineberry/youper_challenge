@@ -87,7 +87,7 @@ Are you upset, is the more pertinent question.Everyone has their own tolerance f
 GENERATED REFLECTION:
  I'm sorry to hear about your relationship about your relationship with your relationship with you.
 
-##Future Work
+## Future Work
 
 There are several alternative systems which would likely outperform the one developed in this exercise. **These more powerful approaches were not pursued due to time constraints imposed by the challenge.** In a real-world scenario I would recommend pursuing and experimenting with a seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining. **The randomly initialized LSTM decoder is very likely the weak link in this system. Replacing it with a large pretrained transformer decoder should significantly improve the linguistic expressiveness of the model.**
 
