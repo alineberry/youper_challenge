@@ -1,11 +1,16 @@
 # Youper Challenge - NLP Engineer
 
 ## Overview
+
+>Note: Many of the design decisions I made in were driven by the challenge time constraints. I would recommend pursuing a more sophisticated system for the Youper app. Please see the "Future Work" section below for more production model design recommendations. 
+
 The system is a generative model, consisting of an encoder-decoder seq2seq stack. The encoder is a pretained roBERTa transformer (12-layer, 768-hidden, 12-heads, 125M parameters), and the decoder is a randomly initialized LSTM (1-layer, 512-hidden, 2.6M parameters, 1-direction). The encoder and decoder are connected in two ways:
-1. The decoder LSTM hidden state is initialized with the result of a max pooling operation across the encoder outputs.
+1. The decoder LSTM hidden state at the first timestep is initialized with the result of a max pooling operation across the encoder outputs.
 1. When making next-token predictions at each timestep, the decoder performs a multiplicative attention operation across the encoder outputs.
 
 The same pretrained tokenizer is used for the encoder and decoder stacks. The encoder uses a frozen set of pretrained word embeddings. The decoder uses a cloned copy of these word embeddings, which are fine-tuned during training.
+
+The architecture is illustrated in the following figure:
 
 ![Encoder Decoder Architecture](images/enc_dec_architecture.png)
 
@@ -24,15 +29,18 @@ As suggested in the challenge, reflections are mined from the therapist answers 
 1. Sentences that have the language "seems like" or "sounds like" near the beginning of the sentence.
 These mined reflections are used for supervised learning.
 
+There were only ~2k examples in the provided dataset. The quantity of data may be a weak point for development of this system.
+
 ## Training
-During training, the question text is passed through the encoder, and the decoder is trained to generate the associated reflections in a supervised manner.
-The system is trained using the Adam optimizer, a learning rate of 3e-4, and 100% teacher forcing. The entire encoder is frozen during training, whereas the decoder is not frozen. Training is stopped automatically when the validation loss stops improving. The Pytorch Lightning framework is used to facilitate the training process. Training take approximately 15-20 minutes on a single Nvidia GeForce GTX 1080 Ti GPU. 
+
+During training, the question text is passed through the encoder, and the decoder is trained to generate the associated reflections in a supervised manner. The system is trained using the Adam optimizer, a learning rate of 3e-4, and 100% teacher forcing. The entire encoder is frozen during training, whereas the decoder is not frozen. Training is stopped automatically when the validation loss stops improving. The Pytorch Lightning framework is used to facilitate the training process. Training take approximately 15-20 minutes on a single Nvidia GeForce GTX 1080 Ti GPU. 
 
 ## Generation
 At inference time, the question text is passed through the encoder and a simple greedy decoding scheme is used to generate reflections.
 
 ## Transfer Learning
-Recent advances in NLP research have introduced the transformer architecture, which is commonly pretrained as a language model on a massive corpus. These pretrained models have shown great power in their world knowledge and text generation capabilities, among many others. Leveraging these pretrained models is an effective technique for building custom systems trained on smaller amounts of domain-specific data.
+Recent advances in NLP research have introduced the transformer architecture. These state-of-the-art models are typically pretrained as language models on massive corpora and have demonstrated impressive capabilities such as world knowledge, text generation, classification, question answering, and many others. Leveraging these pretrained models via transfer learning is an effective technique for building custom systems with smaller amounts of domain-specific data.
+
 There are several transfer learning components present in the system:
 1. Pretrained roBERTa transformer used as the encoder
 1. Pretrained roBERTa subword tokenizer
@@ -41,9 +49,9 @@ There are several transfer learning components present in the system:
 ## Evaluation
 Perplexity on the validation set is used to evaluate model performance. A BLEU score might also be appropriate, but would require further research to conclude. It would also be informative to run a sentence parser over the outputs to compute the rate at which the model generates syntactically correct sentences.
 
-Anecdotally, it seems the model is able to generate reasonably coherent reflections, suggests that it is training correctly and there are no major bugs present. The syntactic structure of the generations tends to read pretty smoothly, although there are still plenty of mistakes. This model is an acceptable first attempt but needs significant tuning before going into production.
+Anecdotally, it seems the model is able to generate reasonably coherent reflections, suggesting that it is training correctly and there are no major bugs present. The syntactic structure of the generations tends to read pretty smoothly, although there are still plenty of mistakes. This model is an acceptable first attempt but needs significant tuning before it could go into production.
 
-By manually inspecting a few examples, one can observe that the model is slightly overfit to the training set. The reflections generated on the training set have more diversity and contextual relevance. The validation reflections still have some reasonable quality, but they are  less interesting, and tend to be more generic and repetitive. Please see a few samples from the training and validation sets below. Also see [3.0-model-inference.ipynb](3.0-model-inference.ipynb) for more examples.
+By manually inspecting a few examples, one can observe that the model is slightly overfit to the training set. The reflections generated on the training set have more diversity and contextual relevance. The validation reflections have reasonable quality, but they are less interesting and tend to be more generic and repetitive. Please see a few samples from the training and validation sets below. Also see [3.0-model-inference.ipynb](3.0-model-inference.ipynb) for more examples.
 
 From the training set. In this case the model generates a relevant and fairly coherent response. 
 > QUESTION:
@@ -79,10 +87,9 @@ Are you upset, is the more pertinent question.Everyone has their own tolerance f
 GENERATED REFLECTION:
  I'm sorry to hear about your relationship about your relationship with your relationship with you.
 
-## Future work
+##Future Work
 
-There are several alternative systems which would likely outperform the one developed in this exercise. These more powerful approaches were not pursued due to time constraints imposed by the challenge. In a real-world scenario I would recommend pursuing and experimenting with the following approaches:
-1. A seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining.
+There are several alternative systems which would likely outperform the one developed in this exercise. **These more powerful approaches were not pursued due to time constraints imposed by the challenge.** In a real-world scenario I would recommend pursuing and experimenting with a seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining. **The randomly initialized LSTM decoder is likely a very weak link in this system. Replacing it with a large pretrained transformer decoder should significantly improve the linguistic expressiveness of the model.**
 
 And researching the feasibility of the following approaches:
 1. A multiclass classification approach
@@ -95,6 +102,7 @@ Possible improvements on the existing system:
 1. Utilize weak supervision and active learning techniques to collect more labeled examples
 1. Explore various ways to improve reflection mining in order to improve label quality
 1. Gradually unfreeze the top layers of the encoder during training.
+1. Increase training batch size. Due to single GPU memory constraints this would require a gradient accumulation callback
 1. Replace existing attention mechanism with multi-headed attention
 1. Experiment with varying degrees of teach forcing
 1. Experiment with a sampling-based generation scheme with varying degrees of sampling temperature

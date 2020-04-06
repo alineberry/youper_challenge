@@ -206,8 +206,6 @@ class ReflectionModel(LightningModule):
             ignore_index=self.addl_state['tokenizer'].convert_tokens_to_ids('<pad>'),
             reduction='mean')
 
-        self.metrics = {}
-
     def encode(self, input_ids, attn_mask):
         # forward pass through the encoder
         last_hidden_state, _ = self.enc(input_ids=input_ids, attention_mask=attn_mask)
@@ -286,7 +284,7 @@ class ReflectionModel(LightningModule):
         input_ids_qu, attn_mask_qu, input_ids_re, seq_len_re = x
         logits = self.forward(input_ids_qu, attn_mask_qu, input_ids_re, seq_len_re)
         loss = self.loss(logits, y)
-        log = {'train_loss': loss}
+        log = {'loss/train': loss}
         return {'loss': loss, 'log': log}
 
     def validation_step(self, batch, batch_idx):
@@ -301,15 +299,8 @@ class ReflectionModel(LightningModule):
         if len(outputs) == 0: return {'val_loss': 15, 'log': {'val_loss': 15}}
         avg_loss = torch.stack([x['val_loss_batch'] for x in outputs]).mean()
         perp = torch.exp(avg_loss)
-        log = {'val_loss': avg_loss, 'val_perp': perp}
-        return {**log, 'log': log}
-
-    def _update_metrics(self, new_metrics):
-        # todo: training loss comes in every batch whereas val metrics are in epochs. enforce equal boundaries in plot x-axis
-        # todo: update PL methods to call this method
-        for k,v in new_metrics.items():
-            if k not in self.metrics: self.metrics[k] = []
-            self.metrics[k].append(v)
+        log = {'loss/valid': avg_loss, 'val_perp': perp}
+        return {'val_loss': avg_loss, 'log': log}
 
 
 def generate_reflection_from_tensors(input_ids_qu, attn_mask_qu, model, start_token_id, end_token_id,
