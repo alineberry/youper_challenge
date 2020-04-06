@@ -110,6 +110,9 @@ GENERATED REFLECTION:
 
 ## Challenges Faced
 
+The biggest challenge I faced was in the planning phase. The problem has many possible solutions, but I had to choose a high-quality approach that could be accomplished in the time allotted. This required researching the current state of existing tools to determine how much effort would be required to pursue various approaches. There are a lot of hidden pitfalls that I had to avoid such as choosing approaches that exceeded my GPU memory, or introduced too much complexity to quickly debug. I tried to keep things simple while still delivering as much quality as possible.
+
+There was also a slight ramp-up on seq2seq architectures. I have worked with them some in the past in the form of neural machine translation, but most of my deep learning NLP experience is in classification, NER, topic modeling, and question answering. I really enjoyed the opportunity to level up my skills in this area.
 
 ## Future Work
 
