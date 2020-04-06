@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import re
 from pathlib import Path
@@ -7,8 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import torch.nn as nn
 import torch.nn.functional as F
-from pytorch_lightning import LightningModule, Trainer
-from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning import LightningModule
 
 
 def get_data():
@@ -23,8 +21,11 @@ def get_data():
     for c in ['questionTitle', 'questionText', 'answerText']: df[c] = df[c].astype(str)
 
     # mine the first sentences from answers for reflections
-    sent_split_regex = re.compile(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s')
-    df['first_an_sent'] = df.answerText.apply(lambda x: sent_split_regex.split(x)[0])
+    sent_split_regex = re.compile(r'(?<=\.|\?|\!)\s?')
+    def get_first_sentence(s):
+        sentences = sent_split_regex.split(s)
+        return sentences[0].strip()
+    df['first_an_sent'] = df.answerText.apply(get_first_sentence)
 
     # mine "seems like" and "sounds like" sentences from answers
     seem_sounds_regex = re.compile(r'^.{0,50}?(?:seems\slike)|(?:sounds\slike)')
@@ -32,7 +33,7 @@ def get_data():
         sents = sent_split_regex.split(s)
         for sent in sents:
             match = seem_sounds_regex.match(sent.lower())
-            if match is not None: return sent
+            if match is not None: return sent.strip()
     df['seems_sounds_sents'] = df.answerText.apply(extract_seems_sounds)
 
     # construct reflections

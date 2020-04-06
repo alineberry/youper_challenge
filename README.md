@@ -23,6 +23,13 @@ The source code is located in the file [`youper.py`](youper.py). The following n
 
 The Python programming language and PyTorch deep learning framework were used. The python environment used to perform this work is represented in the included `requirements.txt` file. 
 
+To run the project, perform the following steps:
+1. Clone the repository
+1. Create a new python environment and install the `requirements.txt`
+1. Run the notebooks in order
+
+Note, if you don't have GPU on your machine, you may need to instruct PytorchLightning to train on the CPU instead.
+
 ## Data
 As suggested in the challenge, reflections are mined from the therapist answers in the following ways:
 1. The first sentence in the answer.
@@ -33,7 +40,17 @@ There were only ~2k examples in the provided dataset. The quantity of data may b
 
 ## Training
 
-During training, the question text is passed through the encoder, and the decoder is trained to generate the associated reflections in a supervised manner. The system is trained using the Adam optimizer, a learning rate of 3e-4, and 100% teacher forcing. The entire encoder is frozen during training, whereas the decoder is not frozen. Training is stopped automatically when the validation loss stops improving. The Pytorch Lightning framework is used to facilitate the training process. Training take approximately 15-20 minutes on a single Nvidia GeForce GTX 1080 Ti GPU. 
+The following details outline the training process:
+
+- The question text is passed through the encoder, and the decoder is trained to generate the associated reflections in a supervised manner. 
+- The system is trained using the Adam optimizer, a learning rate of 3e-4, and 100% teacher forcing. 
+- Gradient accumulation is used to establish an effective batch size of 32 with an actual batch size of 8. 
+- The entire encoder is frozen during training, whereas the decoder is not frozen. 
+- Training is stopped automatically when the validation loss stops improving, which in this case was 10 epochs.
+- The Pytorch Lightning framework is used to facilitate the training process. 
+- Training take approximately 15-20 minutes on a single Nvidia GeForce GTX 1080 Ti GPU. 
+
+![Training Progress](images/training_progress.png)
 
 ## Generation
 At inference time, the question text is passed through the encoder and a simple greedy decoding scheme is used to generate reflections.
@@ -53,21 +70,25 @@ Anecdotally, it seems the model is able to generate reasonably coherent reflecti
 
 By manually inspecting a few examples, one can observe that the model is slightly overfit to the training set. The reflections generated on the training set have more diversity and contextual relevance. The validation reflections have reasonable quality, but they are less interesting and tend to be more generic and repetitive. Please see a few samples from the training and validation sets below. Also see [3.0-model-inference.ipynb](3.0-model-inference.ipynb) for more examples.
 
-From the training set. In this case the model generates a relevant and fairly coherent response. 
+From the training set. The model generates a surprisingly relevant reflection by replying "Absolutely not" when the user asks if they have too many issues to address in counseling.
+
+>QUESTION:
+I have so many issues to address. I have a history of sexual abuse, I’m a breast cancer survivor and I am a lifetime insomniac.    I have a long history of depression and I’m beginning to have anxiety. I have low self esteem but I’ve been happily married for almost 35 years.
+   I’ve never had counseling about any of this. Do I have too many issues to address in counseling?<br><br>
+ACTUAL REFLECTION:
+There are never too many issues in living.<br><br>
+GENERATED REFLECTION:
+ Absolutely not.
+
+
+Another from the training set. In this case the model generates a relevant and fairly coherent response. 
+
 > QUESTION:
 Sometimes I can't stop thinking about life after death. I was raised in a religion that teaches that we will live on forever either in hell or in heaven.  When I think of living forever (even if it is in heaven which should be good), I feel overwhelmed. I don't like the thought of living forever and ever and ever. Sometimes I just can't get the thought out of my mind and the thoughts lead to panic and anxiety.  Am I crazy? I don't think these thoughts are normal.<br><br>
 ACTUAL REFLECTION:
 Many people generate intense anxiety with obsessive thinking.<br><br>
 GENERATED REFLECTION:
  It sounds like you are experiencing a lot of anxiety and anxiety.
-
-Another from the training set. Here, the model uses the word "torn" (which the therapist uses) but uses it on a different subject than the therapist (therapist is saying the girlfriend is torn, model is saying the user is torn). This could indicate some overfitting. (This example also illustrates a sentence splitting error)
-> QUESTION:
-She's busy because her mom makes her clean all the time and go out places with her family. We don't talk much because of it. Also, we have little fights. We want to work it out but we don't know how.<br><br>
-ACTUAL REFLECTION:
-Maybe your girlfriend feels torn in her emotions between loyalty toward her family and toward investing herself in a relationship.There are so many "maybes", that the best way to strengthen your relationship is to ask your girlfriend if she feels any<br><br>
-GENERATED REFLECTION:
- I'm sorry to hear that you are feeling torn and the relationship you are feeling.
 
 
 From the validation set. The model comes up with a pretty coherent response, but it doesn't seem to be very relevant because the user doesn't mention anything about being depressed.
@@ -87,6 +108,9 @@ Are you upset, is the more pertinent question.Everyone has their own tolerance f
 GENERATED REFLECTION:
  I'm sorry to hear about your relationship about your relationship with your relationship with you.
 
+## Challenges Faced
+
+
 ## Future Work
 
 There are several alternative systems which would likely outperform the one developed in this exercise. **These more powerful approaches were not pursued due to time constraints imposed by the challenge.** In a real-world scenario I would recommend pursuing and experimenting with a seq2seq architecture consisting of large transformers (eg, roBERTa, T5, etc) for both the encoder and decoder, each initialized from LM pretraining. **The randomly initialized LSTM decoder is very likely the weak link in this system. Replacing it with a large pretrained transformer decoder should significantly improve the linguistic expressiveness of the model.**
@@ -102,13 +126,13 @@ Possible improvements on the existing system described in this document:
 1. Utilize weak supervision and active learning techniques to collect more labeled examples
 1. Explore various ways to improve reflection mining in order to improve label quality
 1. Gradually unfreeze the top layers of the encoder during training.
-1. Increase training batch size. Due to single GPU memory constraints this would require a gradient accumulation callback
 1. Replace existing attention mechanism with multi-headed attention
 1. Experiment with varying degrees of teacher forcing
 1. Experiment with a sampling-based generation scheme with varying degrees of sampling temperature
 1. Experiment with more sophisticated algorithms for generation, such as beam search
 1. Adding additional layers to the LSTM
 1. Increasing the size of the LSTM
+1. Adding dropout and/or batch/layer-norm in various places
 1. There are some inefficiencies in the existing attention mechanism that could be resolved to reduce computation/memory complexity
 1. As a post-processing step, run a sentence parser over the output to detect poor quality generations before displaying to user 
 1. Improve the sentence splitter
