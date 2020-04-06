@@ -124,14 +124,13 @@ class ReflectionDataset(Dataset):
         autoregressive setup of the decoder.
 
         Returns:
-            (input_ids_qu, attn_mask_qu, input_ids_re, attn_mask_re), target_ids
+            (input_ids_qu, attn_mask_qu, input_ids_re, seq_len_re), target_ids
 
             input_ids_qu (tensor): Token IDs for the question.
             attn_mask_qu (tensor): Attention mask for the question.
             input_ids_re (tensor): Token IDs for the reflection. Does not include the last token.
             seq_len_re (tensor): Reflection length.
             target_ids (tensor): Token IDs for the question. Does not include the first token.
-
         """
         input_ids_qu, attn_mask_qu = self.tokenize(
             self.question_text.iloc[i],
@@ -160,15 +159,20 @@ class ReflectionDataset(Dataset):
 
 
 class ReflectionModel(LightningModule):
+    """This class is the point of entry for the entire seq2seq stack. It is set up as a `LightningModule` to
+    leverage the PytorchLightning training framework.
+    """
     def __init__(self, roberta, enc_hidden_sz=768, dec_hidden_sz=256, dec_input_sz=768, dec_num_layers=1,
                  addl_state=None):
-        """
+        """Initialize the model, which in turn initializes several lower level modules such as the decoder,
+        word embeddings, etc.
 
         Args:
-            roberta:
-            enc_hidden_sz:
-            dec_hidden_sz:
-            dec_input_sz:
+            roberta (nn.Module): roBERTa model, typically pretrained.
+            enc_hidden_sz (int): Size of the encoder hidden state. This is info only; not a setter.
+            dec_hidden_sz (int): Size of the decoder hidden state. This is a setter.
+            dec_input_sz: (int): Size of the decoder input vector. In this case, it is the size of the roBERTa
+                word embeddings. In this case, not a setter.
             addl_state (dict): A dictionary of additional state necessary for this LightningModule to function
                 properly. Required keys are 'df', 'train_mask', 'valid_mask', and 'tokenizer'.
         """
@@ -208,6 +212,19 @@ class ReflectionModel(LightningModule):
             reduction='mean')
 
     def encode(self, input_ids, attn_mask):
+        """Takes in the question and returns the inputs to the decoder.
+
+        Args:
+            input_ids (tensor): Question token IDs.
+            attn_mask (tensor): Question attention mask.
+
+        Returns:
+            last_hidden_state, (h, c)
+
+            last_hidden_state (tensor): Output from the encoder, contextualized word embeddings.
+            h (tensor): Decoder LSTM hidden state initialization, derived from encoder outputs.
+            c (tensor): Decoder LSTM cell state initialization, derived from encoder outputs.
+        """
         # forward pass through the encoder
         last_hidden_state, _ = self.enc(input_ids=input_ids, attention_mask=attn_mask)
 
@@ -223,6 +240,23 @@ class ReflectionModel(LightningModule):
         return last_hidden_state, (h, c)
 
     def decode(self, last_hidden_state, h, c, input_ids_re, seq_len_re, attn_mask_qu):
+        """Takes the outputs from the encoder and returns next-token predictions.
+
+        Args:
+            last_hidden_state (tensor): Outputs from encoder. Used for attention.
+            h (tensor): Decoder LSTM hidden state initialization, derived from encoder outputs.
+            c (tensor): Decoder LSTM cell state initialization, derived from encoder outputs.
+            input_ids_re (tensor): Reflection token IDs.
+            seq_len_re (tensor): Reflection lengths.
+            attn_mask_qu (tensor): Attention  mask for the question. Used in the decoder attention mechanism.
+
+        Returns:
+            logits, (h, c)
+
+            logits (tensor): Logits across vocabulary for next-token prediction.
+            h (tensor): Last hidden state from the decoder (primarly used for generation).
+            c (tensor): Last cell state from the decoder (primarily used for generation).
+        """
         # forward pass through the decoder
         x = self.dec_emb(input_ids_re)
         x_lens = seq_len_re
@@ -244,12 +278,25 @@ class ReflectionModel(LightningModule):
         return logits, (h, c)
 
     def forward(self, input_ids_qu, attn_mask_qu, input_ids_re, seq_len_re):
+        """Simple wrapper around `self.encoder` and `self.decode`. The methods are split up in this way to facilitate
+        both training and inference/generation modes.
+
+        Args:
+            input_ids_qu (tensor): Question token IDs.
+            attn_mask_qu (tensor): Question attention mask.
+            input_ids_re (tensor): Reflection token IDs.
+            seq_len_re (tensor): Reflection sequence lengths.
+
+        Returns:
+            logits (tensor): Logits across vocab for next-token predictions.
+
+        """
         # encode
         last_hidden_state, (h, c) = self.encode(input_ids_qu, attn_mask_qu)
 
         # decode
-        logits, (h, c) = self.decode(last_hidden_state, h, c, input_ids_re, seq_len_re,
-                                     attn_mask_qu)
+        logits, _ = self.decode(last_hidden_state, h, c, input_ids_re, seq_len_re,
+                                attn_mask_qu)
 
         return logits
 
@@ -306,16 +353,23 @@ class ReflectionModel(LightningModule):
 
 def generate_reflection_from_tensors(input_ids_qu, attn_mask_qu, model, start_token_id, end_token_id,
                                      max_len=500, use_gpu=True):
-    """
+    """Implements the greedy decoding scheme. Takes the question, passes it through the encoder, initializes the
+    decoder, then predicts token IDs one by one. The predicted token is taken as the argmax logit. The input at each
+    timestep of the decoder is the prediction from the previous timestep. At the first timestep, the input is the
+    word embedding associated with the start token. Tokens are generated in a sequential fashion until the end token
+    is generated or the maximum length is reached.
 
     Args:
-        input_ids_qu (tensor): Token IDs for the question.
-        attn_mask_qu (tensor): Attention mask for the question.
-        model (nn.Module): Trained model.
-        start_token_id (int): Token ID of the start token (eg "<s>") used during training.
+        input_ids_qu (tensor): Question token IDs.
+        attn_mask_qu (tensor): Question attention mask.
+        model (nn.Module): The full, highest-level model (trained).
+        start_token_id (int): Token ID for the start token '<s>'.
+        end_token_id (int): Token ID for the end token '</s>'.
+        max_len (int): Maximum length for generated reflections. Used to truncate run-on generations.
+        use_gpu (bool): Whether to generate reflections on the GPU or CPU.
 
     Returns:
-        pred_toks (list[int]):
+        pred_toks (list[int]): The generation in the form of a list of token IDs. Can be decoded by the tokenizer.
     """
 
     device = torch.device('cuda') if use_gpu else torch.device('cpu')
@@ -344,6 +398,8 @@ def generate_reflection_from_tensors(input_ids_qu, attn_mask_qu, model, start_to
 
 
 def generate_reflection_from_string(model, tokenizer, string, start_token_id, end_token_id, use_gpu=True):
+    """Wraps `generate_reflection_from_tensors` to allow string input
+    """
     input_ids_qu, attn_mask_qu = ReflectionDataset.tokenize(string, tokenizer, 512)
     input_ids_qu = input_ids_qu.unsqueeze(0)
     attn_mask_qu = attn_mask_qu.unsqueeze(0)
