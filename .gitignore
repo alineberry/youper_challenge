@@ -1,0 +1,5 @@
+/models/
+/lightning_logs/
+/.ipynb_checkpoints/
+/.idea/
+/__pycache__/
